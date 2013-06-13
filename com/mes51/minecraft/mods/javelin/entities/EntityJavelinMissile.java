@@ -213,12 +213,43 @@ public class EntityJavelinMissile extends Entity implements IProjectile, IEntity
 
     public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound)
     {
-        par1NBTTagCompound.setByte("inGround", (byte)(this.inGround ? 1 : 0));
+        par1NBTTagCompound.setInteger("ticksInAir", this.ticksInAir);
+        par1NBTTagCompound.setDouble("vX", this.vX);
+        par1NBTTagCompound.setDouble("vY", this.vY);
+        par1NBTTagCompound.setDouble("vZ", this.vZ);
+        par1NBTTagCompound.setBoolean("exploded", this.exploded);
+        par1NBTTagCompound.setBoolean("fireBooster", this.fireBooster);
+        par1NBTTagCompound.setBoolean("moveToTarget", this.moveToTarget);
+        if (target != null)
+        {
+            par1NBTTagCompound.setInteger("target.entityId", target.entityId);
+        }
+        else
+        {
+            par1NBTTagCompound.setInteger("target.entityId", 0);
+        }
+        if (shootingEntity != null)
+        {
+            par1NBTTagCompound.setInteger("shootingEntity.entityId", shootingEntity.entityId);
+        }
+        else
+        {
+            par1NBTTagCompound.setInteger("shootingEntity.entityId", 0);
+        }
     }
 
     public void readEntityFromNBT(NBTTagCompound par1NBTTagCompound)
     {
-        this.inGround = par1NBTTagCompound.getByte("inGround") == 1;
+        this.ticksInAir = par1NBTTagCompound.getInteger("ticksInAir");
+        this.vX = par1NBTTagCompound.getDouble("vX");
+        this.vY = par1NBTTagCompound.getDouble("vY");
+        this.vZ = par1NBTTagCompound.getDouble("vZ");
+        this.exploded = par1NBTTagCompound.getBoolean("exploded");
+        this.fireBooster = par1NBTTagCompound.getBoolean("fireBooster");
+        this.moveToTarget = par1NBTTagCompound.getBoolean("moveToTarget");
+        // ゲームロード時にはEntityが見つからない or まだロードされていないのでnullになる
+        this.target = worldObj.getEntityByID(par1NBTTagCompound.getInteger("target.entityId"));
+        this.shootingEntity = worldObj.getEntityByID(par1NBTTagCompound.getInteger("shootingEntity.entityId"));
     }
 
     public void onCollideWithPlayer(EntityPlayer par1EntityPlayer) { }
