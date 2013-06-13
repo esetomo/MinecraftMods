@@ -46,10 +46,11 @@ public class ItemJavelinMissile extends Item {
                     new Object[] {
                             " X ",
                             " Y ",
-                            "ZZZ",
+                            "ZWZ",
                             'X', new ItemStack(Item.ingotIron),
                             'Y', new ItemStack(ItemShapedCharge.instance, 1),
-                            'Z', new ItemStack(Item.redstone, 1)
+                            'Z', new ItemStack(Item.redstone, 1),
+                            'W', new ItemStack(Item.lightStoneDust, 1)
                     }
             );
         }
