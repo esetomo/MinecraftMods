@@ -10,18 +10,11 @@ import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.block.Block;
-import net.minecraft.enchantment.EnchantmentThorns;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.IProjectile;
-import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.packet.Packet70GameEvent;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
@@ -40,8 +33,8 @@ public class EntityJavelinMissile extends Entity implements IProjectile, IEntity
     private static final int DECENT_START_TIME = 60;
     private static final double TARGET_TRACE_POWER = 0.7;
     private static final double TARGET_TRACE_MAX_VELOCITY = 2.0;
+    private static final int ENTITY_LIFE_TIME_LIMIT = 1000;
 
-    private boolean inGround = false;
     private Entity shootingEntity;
     private int ticksInAir = 0;
 
@@ -140,75 +133,84 @@ public class EntityJavelinMissile extends Entity implements IProjectile, IEntity
             this.setDead();
             return;
         }
-
-        if (this.inGround)
+        if (this.ticksInAir > ENTITY_LIFE_TIME_LIMIT)
         {
             this.explodeMissile();
+            return;
+        }
+
+        this.ticksInAir++;
+        Vec3 pos = Vec3.createVectorHelper(this.posX, this.posY, this.posZ);
+        Vec3 lookAt = Vec3.createVectorHelper(this.vX, this.vY, this.vZ);
+        Entity entity = Util.searchTarget(this, pos, lookAt);
+
+        MovingObjectPosition movingobjectposition = null;
+        if (entity != null)
+        {
+            movingobjectposition = new MovingObjectPosition(entity);
         }
         else
         {
-            this.ticksInAir++;
-            Vec3 pos = Vec3.createVectorHelper(this.posX, this.posY, this.posZ);
-            Vec3 lookAt = Vec3.createVectorHelper(this.posX + this.vX, this.posY + this.vY, this.posZ + this.vZ);
-            Entity entity = Util.searchTarget(this, pos, lookAt);
-
-            MovingObjectPosition movingobjectposition = null;
-            if (entity != null)
-            {
-                movingobjectposition = new MovingObjectPosition(entity);
-            }
-
-            if (movingobjectposition != null)
-            {
-                this.explodeMissile();
-                return;
-            }
-
-            if (this.fireBooster)
-            {
-                for (int i = 0; i < 4; ++i)
-                {
-                    this.worldObj.spawnParticle("crit", this.posX + this.vX * (double)i / 4.0, this.posY + this.vY * (double)i / 4.0, this.posZ + this.vZ * (double)i / 4.0, -this.vX, -this.vY + 0.2, -this.vZ);
-                }
-            }
-
-            this.posX += this.vX;
-            this.posY += this.vY;
-            this.posZ += this.vZ;
-
-            if (this.fireBooster)
-            {
-                if (this.moveToTarget)
-                {
-                    if (target != null)
-                    {
-                        double dX = (this.target.posX - this.posX);
-                        double dZ = (this.target.posZ - this.posZ);
-                        double length = Math.min(Math.sqrt(dX * dX + dZ * dZ) * TARGET_TRACE_POWER, TARGET_TRACE_MAX_VELOCITY);
-                        double rad = Math.atan2(dZ, dX);
-                        double cos = Math.cos(rad);
-                        double sin = Math.sin(rad);
-                        this.vX = cos * length;
-                        this.vZ = sin * length;
-                    }
-                }
-                else if (this.ticksInAir > DECENT_START_TIME)
-                {
-                    this.vY -= ASCENT_VELOCITY * 3.0F;
-                    this.moveToTarget = true;
-                }
-            }
-            else if (this.ticksInAir > BOOSTER_FIRING_TIME)
-            {
-                this.vY += ASCENT_VELOCITY;
-                this.fireBooster = true;
-            }
-
-            double speed = Math.sqrt(this.vX * this.vX + this.vY * this.vY + this.vZ * this.vZ);
-            this.setYawAndPitch(this.vX / speed, this.vY / speed, this.vZ / speed);
-            this.setPosition(this.posX, this.posY, this.posZ);
-            this.doBlockCollisions();
+            movingobjectposition = this.worldObj.rayTraceBlocks_do_do(Util.CopyVec3(pos), lookAt.addVector(this.posX, this.posY, this.posZ), false, true);
         }
+
+        if (movingobjectposition != null)
+        {
+            this.explodeMissile();
+            return;
+        }
+
+        if (this.fireBooster)
+        {
+            for (int i = 0; i < 4; ++i)
+            {
+                this.worldObj.spawnParticle(
+                        "crit",
+                        this.posX + this.vX * (double)i / 4.0,
+                        this.posY + this.vY * (double)i / 4.0,
+                        this.posZ + this.vZ * (double)i / 4.0,
+                        -this.vX,
+                        -this.vY + 0.2,
+                        -this.vZ
+                );
+            }
+        }
+
+        this.posX += this.vX;
+        this.posY += this.vY;
+        this.posZ += this.vZ;
+
+        if (this.fireBooster)
+        {
+            if (this.moveToTarget)
+            {
+                if (target != null)
+                {
+                    double dX = (this.target.posX - this.posX);
+                    double dZ = (this.target.posZ - this.posZ);
+                    double length = Math.min(Math.sqrt(dX * dX + dZ * dZ) * TARGET_TRACE_POWER, TARGET_TRACE_MAX_VELOCITY);
+                    double rad = Math.atan2(dZ, dX);
+                    double cos = Math.cos(rad);
+                    double sin = Math.sin(rad);
+                    this.vX = cos * length;
+                    this.vZ = sin * length;
+                }
+            }
+            else if (this.ticksInAir > DECENT_START_TIME)
+            {
+                this.vY -= ASCENT_VELOCITY * 3.0F;
+                this.moveToTarget = true;
+            }
+        }
+        else if (this.ticksInAir > BOOSTER_FIRING_TIME)
+        {
+            this.vY += ASCENT_VELOCITY;
+            this.fireBooster = true;
+        }
+
+        double speed = Math.sqrt(this.vX * this.vX + this.vY * this.vY + this.vZ * this.vZ);
+        this.setYawAndPitch(this.vX / speed, this.vY / speed, this.vZ / speed);
+        this.setPosition(this.posX, this.posY, this.posZ);
     }
 
     public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound)

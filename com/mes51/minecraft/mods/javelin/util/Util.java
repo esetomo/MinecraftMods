@@ -94,7 +94,7 @@ public class Util {
         return pos;
     }
 
-    private static Vec3 CopyVec3(Vec3 val)
+    public static Vec3 CopyVec3(Vec3 val)
     {
         return Vec3.createVectorHelper(val.xCoord, val.yCoord, val.zCoord);
     }
