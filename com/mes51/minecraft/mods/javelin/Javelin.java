@@ -3,6 +3,7 @@ package com.mes51.minecraft.mods.javelin;
 import com.mes51.minecraft.mods.javelin.entities.EntityJavelinMissile;
 import com.mes51.minecraft.mods.javelin.items.ItemJavelin;
 import com.mes51.minecraft.mods.javelin.items.ItemJavelinMissile;
+import com.mes51.minecraft.mods.javelin.items.ItemMissileOuter;
 import com.mes51.minecraft.mods.javelin.items.ItemShapedCharge;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.Init;
@@ -31,6 +32,7 @@ public class Javelin {
         ItemJavelin.register();
         ItemJavelinMissile.register();
         ItemShapedCharge.register();
+        ItemMissileOuter.register();
         EntityJavelinMissile.register();
     }
 
@@ -40,5 +42,6 @@ public class Javelin {
         ItemJavelin.registerRecipe();
         ItemJavelinMissile.registerRecipe();
         ItemShapedCharge.registerRecpie();
+        ItemMissileOuter.registerRecpie();
     }
 }

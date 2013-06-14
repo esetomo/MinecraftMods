@@ -33,7 +33,7 @@ public class ItemJavelinMissile extends Item {
                             "X",
                             "Y",
                             "Z",
-                            'X', new ItemStack(Item.ingotIron),
+                            'X', ItemMissileOuter.instance,
                             'Y', new ItemStack(ItemShapedCharge.instance, 1),
                             'Z', Items.getItem("electronicCircuit")
                     }
@@ -47,7 +47,7 @@ public class ItemJavelinMissile extends Item {
                             " X ",
                             " Y ",
                             "ZWZ",
-                            'X', new ItemStack(Item.ingotIron),
+                            'X', ItemMissileOuter.instance,
                             'Y', new ItemStack(ItemShapedCharge.instance, 1),
                             'Z', new ItemStack(Item.redstone, 1),
                             'W', new ItemStack(Item.lightStoneDust, 1)
