@@ -74,6 +74,7 @@ public class ItemJavelin extends Item
         this.maxStackSize = 1;
         this.setCreativeTab(CreativeTabs.tabCombat);
         this.setUnlocalizedName(ITEM_JAVELIN_NAME);
+        setMaxDamage(1);
     }
 
     public void onPlayerStoppedUsing(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer, int par4)
@@ -87,7 +88,7 @@ public class ItemJavelin extends Item
 
         boolean isCreative = par3EntityPlayer.capabilities.isCreativeMode;
 
-        if (isCreative || par3EntityPlayer.inventory.hasItem(ItemJavelinMissile.instance.itemID))
+        if (isCreative || par1ItemStack.getItemDamage() < par1ItemStack.getMaxDamage())
         {
             Entity target = Util.searchTarget(par3EntityPlayer);
             // targetがいない場合は何もしない
@@ -102,7 +103,7 @@ public class ItemJavelin extends Item
 
             if (!isCreative)
             {
-                par3EntityPlayer.inventory.consumeInventoryItem(ItemJavelinMissile.instance.itemID);
+                par1ItemStack.damageItem(par1ItemStack.getMaxDamage(), par3EntityPlayer);
             }
 
             if (!par2World.isRemote)
@@ -114,17 +115,36 @@ public class ItemJavelin extends Item
 
     public ItemStack onEaten(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer)
     {
+        if (par1ItemStack.getItemDamage() > 0 && par3EntityPlayer.inventory.hasItem(ItemJavelinMissile.instance.itemID))
+        {
+            par3EntityPlayer.inventory.consumeInventoryItem(ItemJavelinMissile.instance.itemID);
+            par1ItemStack.setItemDamage(0);
+        }
         return par1ItemStack;
     }
 
     public int getMaxItemUseDuration(ItemStack par1ItemStack)
     {
-        return Integer.MAX_VALUE;
+        if (par1ItemStack.getItemDamage() < par1ItemStack.getMaxDamage())
+        {
+            return 72000;
+        }
+        else
+        {
+            return 80;
+        }
     }
 
     public EnumAction getItemUseAction(ItemStack par1ItemStack)
     {
-        return EnumAction.bow;
+        if (par1ItemStack.getItemDamage() < par1ItemStack.getMaxDamage())
+        {
+            return EnumAction.bow;
+        }
+        else
+        {
+            return EnumAction.block;
+        }
     }
 
     public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer)
@@ -136,11 +156,7 @@ public class ItemJavelin extends Item
             return event.result;
         }
 
-        if (par3EntityPlayer.capabilities.isCreativeMode || par3EntityPlayer.inventory.hasItem(ItemJavelinMissile.instance.itemID))
-        {
-            par3EntityPlayer.setItemInUse(par1ItemStack, this.getMaxItemUseDuration(par1ItemStack));
-        }
-
+        par3EntityPlayer.setItemInUse(par1ItemStack, this.getMaxItemUseDuration(par1ItemStack));
         return par1ItemStack;
     }
 
